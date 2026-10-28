@@ -1,6 +1,7 @@
 import pygame
 import pgzrun
 import random
+import math
 WIDTH = 1000
 global l
 l=1
@@ -18,9 +19,9 @@ heroi = Heroi("heroy",1,200)
 global moelas
 moelas=[]
 def mudar_cor():
-    a=random.randint(0,225)
-    b=random.randint(0,225)
-    c=random.randint(0,225)
+    a=random.randint(0,200)
+    b=random.randint(0,200)
+    c=random.randint(0,200)
     global d
     d=(a,b,c)
 def redimensionar(ator,altura):
@@ -60,10 +61,68 @@ pepino = Pepino("pepino")
 pepino.y = 200
 pepino.x = 999
 redimensionar(pepino,80)
+obstaculos=[
+Rect((200,80),(500,200))
+
+]
+class Coruja(Actor):
+    def __init__(self,image):
+        super().__init__(image)
+        self.raio_visão = 160
+        self.passo_raio = 10
+        self.waypoints = ((500,200),(125,200),(0,75,),(250,325),(500,75),(750,325),(1000,85))
+        self.waypoint_atual=0
+    def visao (self,heroi,obs):
+        dx=self.x-heroi.x
+        dy=self.y-heroi.y
+        diagonal=math.hypot(dx,dy)
+
+        if self.raio_visão<diagonal:
+            return False
+        if self.raio_visão>diagonal:
+            return True
+        if diagonal == 0:
+            return True
+        dir_x = dx/diagonal
+        dir_y = dy/diagonal
+        andos=int (diagonal/self.passo_raio)
+        for p in range (1,andos):
+            circulinhos_x= self.x+ dir_x * (p*self.passo_raio)
+            circulinhos_y= self.y+ dir_y * (p*self.passo_raio)
+            for Rect in obs:
+                if Rect.collidepoint ((circulinhos_x,circulinhos_y)):
+                    return False
+        return True
+        
+
+    def mol(self,heroi):
+        if self.visao(heroi,obstaculos)== True:
+            alvo_x = heroi.x
+            alvo_y = heroi.y
+        else:
+            alvo_x,alvo_y = self.waypoints[self.waypoint_atual]
+            longe_waypoint=math.hypot(alvo_x-self.x,alvo_y-self.y)
+            if longe_waypoint<5:
+                self.waypoint_atual=(self.waypoint_atual+1)% 7
+        if self.x!= alvo_x:
+            if alvo_x<self.x:
+                self.x-=2
+            elif alvo_x>self.x:
+                self.x+=2
+        if self.y != alvo_y:
+            if alvo_y<self.y:
+                self.y-=2
+            elif alvo_y>self.y:
+                self.y+=2
+        
+corujinha= Coruja("coruja")
+corujinha.x=500
+corujinha.y=200
 d = (225,59,93)
 def update():
     global l, moelas
     if heroi.estado_jogo=="jogando":
+        corujinha.mol(heroi)
         if heroi.vida<=0:
             heroi.fase-=1
             heroi.vida=3
@@ -109,7 +168,7 @@ def update():
                 pepino.no_topo=True
             pepino.pingo_pong()
            
-        if pepino.colliderect (heroi):
+        if heroi.colliderect(pepino) or heroi.colliderect(corujinha):
             heroi.vida-=1
             heroi.morreu = 3
             heroi.estado_jogo="espera"
@@ -124,6 +183,7 @@ def update():
         if keyboard.p:
             heroi.estado_jogo="jogando"
             heroi.morreu = 2
+            corujinha.x=500
         
 
 
@@ -133,6 +193,12 @@ def draw():
         screen.fill(d)
         heroi.draw()  
         pepino.draw()
+        corujinha.draw()
+        for Rect in obstaculos:
+            screen.draw.rect(Rect,"mediumvioletred")
+        #for i,wp in enumerate (corujinha.waypoints):
+            #screen.draw.filled_circle(wp,14,"yellowgreen")
+        screen.draw.circle((corujinha.x,corujinha.y),corujinha.raio_visão,"mediumslateblue")
         for moela in moelas:
             moela.draw()
         screen.draw.text(f"Pontos: {heroi.pontos}", topleft=(20, 20), fontsize=32, color="black", shadow=(1, 1), scolor="pink")
