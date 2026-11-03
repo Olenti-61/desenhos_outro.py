@@ -61,10 +61,6 @@ pepino = Pepino("pepino")
 pepino.y = 200
 pepino.x = 999
 redimensionar(pepino,80)
-obstaculos=[
-Rect((200,80),(500,200))
-
-]
 class Coruja(Actor):
     def __init__(self,image):
         super().__init__(image)
@@ -72,7 +68,10 @@ class Coruja(Actor):
         self.passo_raio = 10
         self.waypoints = ((500,200),(125,200),(0,75,),(250,325),(500,75),(750,325),(1000,85))
         self.waypoint_atual=0
-    def visao (self,heroi,obs):
+        self.obstaculos=[
+        Rect((200,80),(500,200))
+        ]
+    def visao (self,heroi):
         dx=self.x-heroi.x
         dy=self.y-heroi.y
         diagonal=math.hypot(dx,dy)
@@ -89,14 +88,14 @@ class Coruja(Actor):
         for p in range (1,andos):
             circulinhos_x= self.x+ dir_x * (p*self.passo_raio)
             circulinhos_y= self.y+ dir_y * (p*self.passo_raio)
-            for Rect in obs:
-                if Rect.collidepoint ((circulinhos_x,circulinhos_y)):
+            for reangulo in self.obstaculos:
+                if retangulo.collidepoint ((circulinhos_x,circulinhos_y)):
                     return False
         return True
         
 
-    def mol(self,heroi):
-        if self.visao(heroi,obstaculos)== True:
+    def movimentacao(self,heroi):
+        if self.visao(heroi)== True:
             alvo_x = heroi.x
             alvo_y = heroi.y
         else:
@@ -122,7 +121,7 @@ d = (225,59,93)
 def update():
     global l, moelas
     if heroi.estado_jogo=="jogando":
-        corujinha.mol(heroi)
+        corujinha.movimentacao(heroi)
         if heroi.vida<=0:
             heroi.fase-=1
             heroi.vida=3
@@ -194,7 +193,7 @@ def draw():
         heroi.draw()  
         pepino.draw()
         corujinha.draw()
-        for Rect in obstaculos:
+        for retangulo in corujinha.obstaculos:
             screen.draw.rect(Rect,"mediumvioletred")
         #for i,wp in enumerate (corujinha.waypoints):
             #screen.draw.filled_circle(wp,14,"yellowgreen")
